@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509072703373.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "439F064A",
+    "lastKnownWriteTime" : 4331501056,
+    "last_content_update" : 1509072703373,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "DCB86B64",
+        "caption" : "pricebycategory",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=pricebycategory&cache_key=DCB86B64",
+        "displayedObservations" : 65,
+        "environment" : "",
+        "object" : "pricebycategory",
+        "preview" : 0,
+        "totalObservations" : 65,
+        "variables" : 7
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

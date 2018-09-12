@@ -1,0 +1,4 @@
+"0","ggplot(sales1, aes(month(`SALE DATE`, label = TRUE, abbr = TRUE)))+"
+"0","  geom_bar(fill = ""145777"")+"
+"0","  labs(x = ""Month of Sale"", y = ""Units Sold"")+"
+"0","  facet_wrap(~City, ncol = 1)"

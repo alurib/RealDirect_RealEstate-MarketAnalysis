@@ -1,0 +1,28 @@
+"0","library(tidyverse)"
+"2","Loading tidyverse: ggplot2
+Loading tidyverse: tibble
+Loading tidyverse: tidyr
+Loading tidyverse: readr
+Loading tidyverse: purrr
+Loading tidyverse: dplyr
+"
+"2","Conflicts with tidy packages ----------------------------------------------------------------------------------
+"
+"2","filter(): dplyr, stats
+lag():    dplyr, stats
+"
+"0","library(readxl)"
+"0","library(lubridate)"
+"2","
+Attaching package: ‘lubridate’
+
+"
+"2","The following object is masked from ‘package:base’:
+
+    date
+
+"
+"0","library(stringr)"
+"0","brooklyn <- read_xls(""rollingsales_brooklyn.xls"", skip = 4, col_names = TRUE, trim_ws = TRUE)"
+"0","manhattan <- read_xls(""rollingsales_manhattan.xls"", skip = 4, col_names = TRUE, trim_ws = TRUE)"
+"0","sales <- bind_rows(brooklyn,manhattan,.id = ""City"")"

@@ -1,0 +1,4 @@
+"0","ggplot(filter(sales2, City == ""brooklyn""), aes(NEIGHBORHOOD))+"
+"0","  geom_col(aes(y = Count))+"
+"0","  coord_flip()+"
+"0","  ggtitle(""Number of Units Sold in Brooklyn"")"

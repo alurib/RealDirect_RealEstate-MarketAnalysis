@@ -1,0 +1,29 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509046092373.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "8749632D",
+    "lastKnownWriteTime" : 7308604912546349056,
+    "last_content_update" : 1509046092373,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "A82DD4BE",
+        "caption" : "sales_brooklyn",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=sales_brooklyn&cache_key=A82DD4BE",
+        "displayedObservations" : 171,
+        "environment" : "",
+        "object" : "sales_brooklyn",
+        "preview" : 0,
+        "totalObservations" : 171,
+        "variables" : 3
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

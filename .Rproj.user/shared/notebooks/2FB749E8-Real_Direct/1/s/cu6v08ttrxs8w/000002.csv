@@ -1,0 +1,8 @@
+"0","sales2 <- sales1 %>%"
+"0","  filter(!is.na(`BUILDING CATEGORY NUMBER`)) %>% "
+"0","  group_by(City, NEIGHBORHOOD) %>% "
+"0","  summarise(Count = n()) %>% filter(Count>=500)"
+"0","ggplot(filter(sales2, City == ""manhattan""), aes(NEIGHBORHOOD))+"
+"0","  geom_col(aes(y = Count))+"
+"0","  coord_flip()+"
+"0","  ggtitle(""Number of Units Sold in Manhattan"")"

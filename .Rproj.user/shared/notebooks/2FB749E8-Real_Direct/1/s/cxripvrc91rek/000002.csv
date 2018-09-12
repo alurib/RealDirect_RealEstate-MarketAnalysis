@@ -1,0 +1,4 @@
+"0","sales1 <- sales1 %>%"
+"0","  mutate(`YEAR BUILT` = ifelse(`YEAR BUILT`>1500,`YEAR BUILT`, NA),"
+"0","         `GROSS SQUARE FEET`=ifelse(`GROSS SQUARE FEET`==0,NA,`GROSS SQUARE FEET` ),"
+"0","         `LAND SQUARE FEET`= ifelse(`LAND SQUARE FEET`==0, NA, `LAND SQUARE FEET`))"

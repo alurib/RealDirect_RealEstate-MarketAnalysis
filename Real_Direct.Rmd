@@ -1,0 +1,277 @@
+---
+title: "Data Strategy - Real Direct"
+author: "Bharat Aluri"
+date: "10/27/2017"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#INTRODUCTION
+
+The purpose of this analysis is to give insights on the real estate in Brooklyn and Manhattan areas and help create a data strategy for Real Direct that will look into two main areas the company want to improvise.
+
+1. Firstly, to look into the key issues buyers might highly consider while purchasing or renting out a unit, such as the proximity to the nearby subways, parks, schools, hospitals and more, along with comparison of prices per square foot of apartments in the same building or block.
+
+2. And guiding the company on what can be done to improve the website overall in way that impoves the value for the customer. The data strategy is also aimed at directing the further steps for the company in the real estate market. It is expected to serve the company with valuable data and insights on how the customers interact with the tools and services on the website which the company offers. And finally,using that data and insights to support informed decision-making and product development.
+
+```{r Libraries and loading data, include=FALSE}
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(stringr)
+brooklyn <- read_xls("rollingsales_brooklyn.xls", skip = 4, col_names = TRUE, trim_ws = TRUE)
+manhattan <- read_xls("rollingsales_manhattan.xls", skip = 4, col_names = TRUE, trim_ws = TRUE)
+sales <- bind_rows(brooklyn,manhattan,.id = "City")
+```
+
+#EXPLORATORY ANALYSIS ON ROLLING SALES DATA
+
+We perform our basic analysis on the Rolling sales data from NYC - Department of Finance to get insights on sales and patterns which might be useful when building our tools for the buyers. This dataset lists the properties that were sold over a twelve month period starting Aug-2012 for Manhattan and Brooklyn. The data set has a total of 50768 observations.
+
+```{r, include=FALSE}
+sales <- sales %>% 
+  mutate(City = factor(City,labels = c("brooklyn","manhattan")),
+         NEIGHBORHOOD = factor(NEIGHBORHOOD),
+         `BUILDING CLASS CATEGORY` = factor(`BUILDING CLASS CATEGORY`),
+         `TAX CLASS AT PRESENT` = factor(`TAX CLASS AT PRESENT`),
+         BLOCK = factor(BLOCK),
+         LOT = factor(LOT),
+         `BUILDING CLASS AT PRESENT` = factor(`BUILDING CLASS AT PRESENT`),
+         `ZIP CODE`= factor(`ZIP CODE`),
+         `TAX CLASS AT TIME OF SALE` = factor(`TAX CLASS AT TIME OF SALE`),
+         `BUILDING CLASS AT TIME OF SALE`= factor(`BUILDING CLASS AT TIME OF SALE`),
+         `SALE DATE` = ymd(`SALE DATE`),
+         `BUILDING CATEGORY NUMBER` = str_extract(`BUILDING CLASS CATEGORY`,"^[0-9]{2}")
+         )
+sales <- sales %>% rename(`APARTMENT NUMBER` = `APART
+MENT
+NUMBER`, `SALE PRICE` = `SALE
+PRICE`)
+
+
+```
+
+
+```{r, include=FALSE}
+sales1 <- distinct(sales)
+
+## Duplicate Entries
+
+## There are around 1838 duplicate entries which have been removed using distinct ## function of dplyr. There are no missing values in our numeric variables. But we ## still need to look if there are any erreneous values and replace them with NA  ## or impute them.
+
+```
+
+The data seem to have lot of misleading values, so, we take proper steps to address them.
+
+1. We see that there are units where the data doesn't provide the Year Built for a property and that might not be as big of an issue but most buyers would prefer knowing the age of the property when it comes to deciding on their purchases. This is a point company needs to note while listing properties on its website. 
+
+2. 2/3rd data are missing for Land Square feet and Gross Square Feet but, we choose not to impute values for these missing values for various reasons, bias being one of them. It is of utmost importance that these values are mentioned for a property listing on the website.
+
+3. More than 15000 observations have their Sale Price data missing. Since, the main objective is to get some insights on the market, we chose not to impute any values for them as well. And there are more than 1000 cases where the Sale Price is less than $10000, which is highly unlikely unless the sale is within a family or some sort of agreement. We consider them as NA's for our analysis because including these would affect our aggregates and plots.
+
+```{r, include=FALSE}
+sales1 <- sales1 %>%
+  mutate(`YEAR BUILT` = ifelse(`YEAR BUILT`>1500,`YEAR BUILT`, NA),
+         `GROSS SQUARE FEET`=ifelse(`GROSS SQUARE FEET`==0,NA,`GROSS SQUARE FEET` ),
+         `LAND SQUARE FEET`= ifelse(`LAND SQUARE FEET`==0, NA, `LAND SQUARE FEET`))
+
+```
+
+
+## SALE PRICE vs LAND SQUARE FEET
+
+We look at the scatter plot for SALE PRICE and LAND SQUARE FEET, however, restricting the latter to 200K sq.ft.
+
+```{r, echo=FALSE}
+ggplot(sales1, aes(`LAND SQUARE FEET`, `SALE PRICE`))+
+  geom_point(aes(color= City), alpha = 0.5)+
+  coord_cartesian(ylim = c(0,200000000), xlim = c(0,200000))+
+  facet_wrap(~City)
+```
+This plot shows that the land area is small and prices are high in Manhattan compared to Brooklyn where the prices are low even with slightly more land area. 
+
+## SALE PRICE vs GROSS SQUARE FEET 
+
+We plot the same scatter plot but with GROSS SQUARE FEET instead.
+```{r, echo=FALSE}
+ggplot(sales1, aes(`GROSS SQUARE FEET`, `SALE PRICE`))+
+  geom_point(aes(color= City), alpha = 0.5)+
+  coord_cartesian(ylim = c(0,200000000), xlim = c(0,500000))+
+  facet_wrap(~City)
+
+## Even though we have more than 31000 missing values we plot this vizualization ## to get a basic idea on how the GROSS SQUARE FEET differs in each City compared ## to LAND SQUARE FEET.
+```
+ 
+This is interesting. We see that even though the LAND SQUARE FEET is low in Manhattan the GROSS SQUARE FEET is more in the upper SALE PRICE's. The High SALE PRICEs and the difference in the area can be explained by the face that they might be skyscrapers in the city of Manhattan. 
+
+And if we look closely units in Brooklyn have Gross square feet twice the Land square feet.
+
+```{r, include=FALSE}
+## It appears that most of the units have SALE PRICE = 0. We look at the count and 
+## replace them with NA if the count is too large to impute values and then plot 
+## SALE PRICE by BUILDING CATEGORY.
+
+sales1 <- sales1 %>% mutate(`SALE PRICE`= ifelse(`SALE PRICE` <= 10000,NA,`SALE PRICE`))
+
+## There are 15467 units with 0 values. So, we replace them with NA instead of 
+## imputing values since, that is a large number and the data will be more biased ## if values are imputed. 
+```
+
+## MONTH OF SALE VS UNITS SOLD
+
+To get an estimate of average number of units being sold in each month across cities, we plot Number of Units sold against Month of Sale.
+
+```{r, echo=FALSE}
+ggplot(sales1, aes(month(`SALE DATE`, label = TRUE, abbr = TRUE)))+
+  geom_bar(fill = "145777")+
+  labs(x = "Month of Sale", y = "Units Sold")+
+  facet_wrap(~City, ncol = 1)
+```
+
+We can see that number of sales go up in the month of August by a bit but it is maximum during the holidays in December during the Christmas. Looks like people tend to buy property more during the holiday season.
+
+## SALE PRICE vs BUIDING CLASS CATEGORY
+
+We now plot SALE PRICE again grouping it by BUILDING CLASS CATEGORY to look at which units are being sold the most in these cities.
+```{r, echo=FALSE}
+ggplot(filter(sales1,!is.na(`BUILDING CATEGORY NUMBER`)), aes(`SALE PRICE`))+
+  geom_histogram(aes(group = `BUILDING CATEGORY NUMBER`, fill = `BUILDING CATEGORY NUMBER`, colour = "white"), show.legend = TRUE, binwidth = 200000)+
+  ylab("Units sold in a year")+
+  coord_cartesian(xlim = c(0,5000000))+
+  facet_wrap(~City, ncol = 1)
+```
+
+There are two observations that can be made from this plot.
+
+1. The majority of the units in Brooklyn are priced below USD 1 Million whereas in Manhattans case the prices go upto USD 2-3 Million.
+
+2. We see lots of One, Two, Three family homes and Elevator apartments being sold in Brooklyn whereas you see little to nothing One, Two, Three family homes but a lot of Rental, Coops and Condo Walkup/Elevator Apartments being sold in Manhattan. This is justfied with the area it takes to build one, two , three family homes versus building walkup/elevator apartments. We go deeper into this later to get some insights on what bulding categories are sold most in these neighborhoods.
+
+
+
+## BUILDING CATEGORY vs SALE PRICE
+
+We look at the mean and median SALE PRICE for these BUILDING CATEGORIES across both the cities along with the number of units sold.
+```{r, echo=FALSE}
+
+pricebycategory <- sales1 %>% 
+  filter(!is.na(`SALE PRICE`) & !is.na(`BUILDING CATEGORY NUMBER`))%>%
+  group_by(City,`BUILDING CATEGORY NUMBER`) %>% 
+  summarise(mean = mean(`SALE PRICE`, na.rm = TRUE),
+            median = median(`SALE PRICE`, na.rm = TRUE),
+            quantile1 = quantile(`SALE PRICE`, probs = 0.25, na.rm = TRUE),
+            quantile2 = quantile(`SALE PRICE`, probs = 0.75, na.rm = TRUE),
+            `units sold` = n()
+  )
+
+ggplot(filter(pricebycategory, `units sold`>40), aes(`BUILDING CATEGORY NUMBER`, mean))+
+  geom_point(aes(color = `units sold`, size = `units sold` ))+
+  ylab("Avg. Sale Price")+
+  coord_cartesian(ylim = c(0, 100000000))+
+  facet_wrap(~City, ncol = 1)
+  
+```
+For the above plot we only consider the building categories tht have more than 40 units sold in a year. There is an observation to be made here.
+
+1. Even though the number of units of 21(office buildings - 90 units), 23(loft building - 75), 08(rental - elevator apartments - 154 units) sold in manhattan is low in a year, these transactions tend to generate higher revenues for the company due to its higher mean sale price and in turn high commisions. So, we might have to focus in the listing in these categories in Manhattan on our website and provide additional services and tools that might apply to these building categories.
+
+2. This also confirms that as a city the most units sold in brooklyn are One, Two and Three family homes along with Coops/Condos - Elevator apartments and the most units sold in Manhattan are Coops/Condos - Elevator apartments, just like in Brooklyn but in large number.
+
+
+
+## UNITS SOLD BY CITY AND NEIGHBORHOOD
+
+```{r, echo=FALSE}
+sales2 <- sales1 %>%
+  filter(!is.na(`BUILDING CATEGORY NUMBER`)) %>% 
+  group_by(City, NEIGHBORHOOD) %>% 
+  summarise(Count = n()) %>% filter(Count>=500)
+
+ggplot(filter(sales2, City == "manhattan"), aes(NEIGHBORHOOD))+
+  geom_col(aes(y = Count))+
+  coord_flip()+
+  xlab("Units sold")+
+  ggtitle("Manhattan")
+
+ggplot(filter(sales2, City == "brooklyn"), aes(NEIGHBORHOOD))+
+  geom_col(aes(y = Count))+
+  coord_flip()+
+  xlab("Units sold")+
+  ggtitle("Brooklyn")
+
+```
+
+The plot shows the number of units sold in the neighborhoods of Manhattan and Brooklyn. We limit our plot to those Neighborhoods which have more than 500 units sales in a year staring Aug 2012. 
+
+The reason for doing that is that the sales tend to be more frequent in these neighborhods every year and the company has lot to gain by leveraging this information and offering more services for buyers/sellers who are looking to purchase/sell in these neighborhoods and give them a strong reason to use Real Direct.
+
+
+## BUILDING CATEGORY VS UNITS SOLD BY NEIGHBORHOOD
+
+To get a better insight into the types of units sold in these neighborhoods, we plot Building categories againt the number of units sold across these neighborhoods. To avoid too many plots we just plot for neighborhoods with more than 750 units sold in Brooklyn and more than 1000 units sold in Mahattan.
+
+```{r, echo=FALSE}
+sales_brooklyn <- sales1 %>%
+  filter(!is.na(`BUILDING CATEGORY NUMBER`)) %>% 
+  group_by(City, NEIGHBORHOOD) %>%
+  filter(n()>750 & City == "brooklyn") %>% 
+  group_by(NEIGHBORHOOD,`BUILDING CATEGORY NUMBER`) %>% 
+  summarise(count = n())
+
+ggplot(filter(sales_brooklyn, count > 50), aes(`BUILDING CATEGORY NUMBER`, count))+
+  geom_point(aes(size = count))+
+  ylab("Units Sold")+
+  facet_wrap(~NEIGHBORHOOD, ncol = 3)
+  
+```
+The above plot for Manhattan shows neighborhoods that have more than 750 unit sales in a year and more than 50 unit sales of any building categories in those neighborhoods.There are some important observations to be made here.
+1. There are almost a constant pattern across all the neighborhoods here, there are more sales of Two family homes than three and one family homes, one family homes being the least among three.
+2. There are significant number of sales(596 units) of Condos-Elevator apatments in East New York. 
+
+
+```{r, echo=FALSE}
+sales_manhattan <- sales1 %>%
+  filter(!is.na(`BUILDING CATEGORY NUMBER`)) %>% 
+  group_by(City, NEIGHBORHOOD) %>%
+  filter(n()>1000 & City == "manhattan") %>% 
+  group_by(NEIGHBORHOOD,`BUILDING CATEGORY NUMBER`) %>% 
+  summarise(count = n())
+
+ggplot(filter(sales_manhattan, count > 100), aes(`BUILDING CATEGORY NUMBER`, count))+
+  geom_point(aes(size = count))+
+  ylab("Units Sold")+
+  facet_wrap(~NEIGHBORHOOD, ncol = 3)
+```
+The above plot for Manhattan shows neighborhoods that have more than 1000 unit sales in a year and more than 100 unit sales of any building categories in those neighborhoods. There are few important observations to be made out of the plots above
+1. There is a common pattern across most neighborhoods, Coops-Elevator apartments tend to sell more than Condos-Elevator apartments, nonetheless the number for both is significantly high. Where as in case of Midtown West and Upper West Side(59-79) it seems to be other way around and in a notable amount.
+2. The other thing that stands out is the number of sales of Coops-Elevator apartments in Upper East Side(59-96). The number seems to really high compared to other categories and even across other neighborhoods.
+3. Finally, Coops/Condos- Elevator apartments takes majority of sales proportion in all these neighborhoods, the sales of luxury hotels(925 units) stands out in the Midtown West along with Commercial Condos.
+
+
+So, based on the takeaways from the two plots above, a great option would be to focus on ways to increase the number of sales of units of high demand categories in respective neighborhoods and putting extra effort in marketing and advertising across these neighborhoods to attract sellers and buyers to the websites.
+
+That being said the other neighborhoods aren't to be left off, its just that there are less people buy or sell houses in those neighborhoods or there aren't many units or development in that particular neighborhood. We could focus on advertising the service provided by the company in those neighborhoods to encourage people buy/sell real estate. And I would want to analyse more on the situation of these neighborhoods on whether the ratio of number of sales to number of total units is low or if it is actually the development or the total units in the neighborhood that is low. I would recommend advertising/marketing based on this analysis.
+As a matter of fact, we are considering the all real estate transactions from Aug 2012 - Aug 2013. So, it does support the conclusions we arrive at for neighborhood with less sales.
+
+# KEY ELEMENTS FOR A DATA STRATEGY
+
+Inorder to provide excellent buyer/seller services, it is essential that we learn from what our customers are looking for. This can be done looking at their behavior on our website.
+
+1. We should take a survey to know what our buyer preferences are. Are they looking restaurants and entertainment places? Or are they more interested in knowing how close nearest hospital or park is? Whether they are looking to rent or buy a property? Which kind of property are they looking at? What are their neighborhood preferences? What is their price preference? No. of beds and baths? Which floor are they looking for? Are they looking for an agent's help for their purchase? 
+If it's the seller we would have to list down all the information about the property they are willing to sell. The Land area, Gross area, which floor is the property located, when it was built, how many windows and exits does the property have, what kind of floor does it have, what are the taxes and maintainance like, how many baths and beds, what furnishing does it have, when was their purchase made, how they would like to be contacted for questions.
+
+2. We could ask buyer/seller to enter specific data related to the property in order to use our products. To calculate their net proceeds, to calcualte the cap rate, they would have to answer some questions, such as, where the property is located, how much does it costs and what kind of property it is, are they getting a mortgage for it and other related questions by which we can get related information using our products.
+
+3. How would we deal with the issue of building back the data into the product and service? We when we have considerate amount of data on preferences and we could show some information on what are the general preferences of a similar customer. And building products which would help buyers customise ther search based on the information provided by the sellers about their listings would be a good strategy. According the buyer behavior, we could suggest them similar properties they might be interested in.  Depending on the seller preference the buyer can choose to pay a visit to the listing to make a decision.
+
+
+When a company is looking to build a data strategy the foremost thing to consider is their customers. What do they need or what are they looking for? Everything has a metric and a online e-commerce website has one too. It is the number of customers the company has, more importantly the number of sales though Real Direct and finally, the profit company makes through the sales. If we know what they are looking for we can add services or tools which would help them get to it. But, the question there is how do we build tools based on that. We collect some data as a part of registration and then get the data from their search preferences as they go through the website. Providing filter to look through the products is first step of looking what the  user cares about the most. Looking at similar data set can give you an insight on what you are getting into and what users expect from you. Or we could talk to the experts who have been in the field for long and know about what aspects are considered important in the domain for the company and for the customers. As in this case if you are setting up a new website in real estate domain, talk to the realtors and talk about what customers look for when they look at the house or what are the expectations.
+
+#CONCLUSION
+
+There are lots of insights that can be drawn from the rolling sales data provided. The units in manhattan tends to be slightly higher even though the area of the unit are on the lower side. The midtown west neighborhood in manhattan looks to have the highest transaction or purchases made in that particular year. Firstly, to increase revenue per sale, the company has to focus its marketing and advertising on high price properties and increasing their services and tools for the buyers/sellers of that properties. Secondly, to boost the number of sales made through RealDirect, the company needs to put focus marketing efforts on most sold units in the neighborhoods or borough, such as, two, three family holmes in Brooklyn and Coops/Condos Elevator Apartments in Manhattan. Finally, to understand the situation of the other neighborhoods, the company must analyse the sale behaviour in a neighborhood to the development/number of properties in that neighborhood. Depending on these numbers, the company can decide on which neighborhoods to focus on.

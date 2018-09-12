@@ -1,0 +1,3 @@
+"0","sales1 <- distinct(sales)"
+"0","## Duplicate Entries"
+"0","## There are around 1838 duplicate entries which have been removed using distinct ## function of dplyr. There are no missing values in our numeric variables. But we ## still need to look if there are any erreneous values and replace them with NA  ## or impute them."

@@ -1,0 +1,4 @@
+"0","ggplot(filter(sales1,!is.na(`BUILDING CATEGORY NUMBER`)), aes(`SALE PRICE`))+"
+"0","  geom_histogram(aes(group = `BUILDING CATEGORY NUMBER`, fill = `BUILDING CATEGORY NUMBER`, colour = ""white""), show.legend = TRUE, binwidth = 200000)+"
+"0","  coord_cartesian(xlim = c(0,5000000))+"
+"0","  facet_wrap(~City, ncol = 1)"

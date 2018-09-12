@@ -1,0 +1,7 @@
+"0","## It appears that most of the units have SALE PRICE = 0. We look at the count and "
+"0","## replace them with NA if the count is too large to impute values and then plot "
+"0","## SALE PRICE by BUILDING CATEGORY."
+"0","Zero.Sale.Price <- sum(sales1$`SALE PRICE` == 0)"
+"0","sales1 <- sales1 %>% mutate(`SALE PRICE`= ifelse(`SALE PRICE` == 0,NA,`SALE PRICE`))"
+"0","## There are 15467 units with 0 values. So, we replace them with NA instead of "
+"0","## imputing values since, that is a large number and the data will be more biased ## if values are imputed. "
